@@ -1,11 +1,9 @@
 <?php
 
-require_once "config.inc.php";
-
-$servername = getenv('__DB_HOST__');
-$username = getenv('__DB_USER__');
-$password = getenv('__DB_PASSWORD__');
-$database = getenv('__DB_NAME__');
+$servername = getenv('APP_DATABASE_HOST');
+$username = getenv('APP_DATABASE_USER');
+$password = getenv('APP_DATABASE_PASSWORD');
+$database = getenv('APP_DATABASE_NAME');
 
 $conn = new mysqli($servername, $username, $password, $database);
 

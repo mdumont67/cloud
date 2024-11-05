@@ -1,5 +1,7 @@
 services:
   app:
+    env_file:
+      - .env
     build: ./docker/php
     ports:
       - "8086:80"
@@ -15,6 +17,7 @@ services:
       - MYSQL_DATABASE=${APP_DATABASE_NAME}
       - MYSQL_ROOT_PASSWORD=${APP_DATABASE_ROOT_PASSWORD}
     volumes:
+      - ./docker/mysql/rootfs/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - db-data:/var/lib/mysql:rw
 
   phpmyadmin:

@@ -1,24 +1,12 @@
-<html>
-<meta http-equiv="Content-Type"'.' content="text/html; charset=utf8"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="style.css">
-<body>
 <?php
 session_start();
+
+    $conn = require_once 'connectDB.php';
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
 	if(isset($_POST['ac'])){
-		$servername = "localhost";
-		$username = "root";
-		$password = "";
-
-		$conn = new mysqli($servername, $username, $password);
-
-		if ($conn->connect_error) {
-		    die("Connection failed: " . $conn->connect_error);
-		} 
-
-		$sql = "USE bookstore";
-		$conn->query($sql);
-
 		$sql = "SELECT * FROM book WHERE BookID = '".$_POST['ac']."'";
 		$result = $conn->query($sql);
 
@@ -33,39 +21,19 @@ session_start();
 	}
 
 	if(isset($_POST['delc'])){
-		$servername = "localhost";
-		$username = "root";
-		$password = "";
-
-		$conn = new mysqli($servername, $username, $password);
-
-		if ($conn->connect_error) {
-		    die("Connection failed: " . $conn->connect_error);
-		} 
-
-		$sql = "USE bookstore";
-		$conn->query($sql);
-
 		$sql = "DELETE FROM cart";
 		$conn->query($sql);
 	}
 
-	$servername = "localhost";
-	$username = "root";
-	$password = "";
-
-	$conn = new mysqli($servername, $username, $password);
-
-	if ($conn->connect_error) {
-	    die("Connection failed: " . $conn->connect_error);
-	} 
-
-	$sql = "USE bookstore";
-	$conn->query($sql);	
-
 	$sql = "SELECT * FROM book";
 	$result = $conn->query($sql);
-?>	
+?>
+
+<html>
+<meta http-equiv="Content-Type"'.' content="text/html; charset=utf8"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="style.css">
+<body>
 
 <?php
 if(isset($_SESSION['id'])){
@@ -82,7 +50,7 @@ if(!isset($_SESSION['id'])){
 	echo '<header>';
 	echo '<blockquote>';
 	echo '<a href="index.php"><img src="image/logo.png"></a>';
-	echo '<form class="hf" action="Register.php"><input class="hi" type="submit" name="submitButton" value="Register"></form>';
+	echo '<form class="hf" action="register.php"><input class="hi" type="submit" name="submitButton" value="Register"></form>';
 	echo '<form class="hf" action="login.php"><input class="hi" type="submit" name="submitButton" value="Login"></form>';
 	echo '</blockquote>';
 	echo '</header>';
@@ -95,7 +63,7 @@ echo '<blockquote>';
 	    echo "<table>";
 	   	echo '<tr><td>'.'<img src="'.$row["Image"].'"width="80%">'.'</td></tr><tr><td style="padding: 5px;">Title: '.$row["BookTitle"].'</td></tr><tr><td style="padding: 5px;">ISBN: '.$row["ISBN"].'</td></tr><tr><td style="padding: 5px;">Author: '.$row["Author"].'</td></tr><tr><td style="padding: 5px;">Type: '.$row["Type"].'</td></tr><tr><td style="padding: 5px;">RM'.$row["Price"].'</td></tr><tr><td style="padding: 5px;">
 	   	<form action="" method="post">
-	   	Quantity: <input type="number" value="1" name="quantity" style="width: 20%"/><br>
+	   	Quantity: <input type="number" min="1" value="1" name="quantity" style="width: 20%"/><br>
 	   	<input type="hidden" value="'.$row['BookID'].'" name="ac"/>
 	   	<input class="button" type="submit" value="Add to Cart"/>
 	   	</form></td></tr>';

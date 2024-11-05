@@ -1,44 +1,26 @@
-<html>
-<body style="font-family:Arial; margin: 0 auto; background-color: #f2f2f2;">
-<header>
-<blockquote>
-	<img src="image/logo.png">
-	<input class="hi" style="float: right; margin: 2%;" type="button" name="cancel" value="Home" onClick="window.location='index.php';" />
-</blockquote>
-</header>
 <?php
 session_start();
 
+$conn = require_once 'connectDB.php';
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 if(isset($_SESSION['id'])){
-	$servername = "localhost";
-	$username = "root";
-	$password = "";
 
-	$conn = new mysqli($servername, $username, $password); 
-
-	if ($conn->connect_error) {
-	    die("Connection failed: " . $conn->connect_error);
-	} 
-
-	$sql = "USE bookstore";
-	$conn->query($sql);
-
-	$sql = "SELECT CustomerID from customer WHERE UserID = ".$_SESSION['id']."";
-	$result = $conn->query($sql);
-	while($row = $result->fetch_assoc()){
-		$cID = $row['CustomerID'];
-	}
+	$sql = 'SELECT CustomerID from customer WHERE UserID = ?';
+	$stmt = $conn->execute_query($sql, [$_SESSION['id']]);
+    $cID = $stmt->fetch_column();
 
 	$sql = "UPDATE cart SET CustomerID = ".$cID." WHERE 1";
 	$conn->query($sql);
 
 	$sql = "SELECT * FROM cart";
-	$result = $conn->query($sql);
-	while($row = $result->fetch_assoc()){
+	$stmt = $conn->query($sql);
+	while($row = $stmt->fetch_assoc()){
 		$sql = "INSERT INTO `order`(CustomerID, BookID, DatePurchase, Quantity, TotalPrice, Status) 
-		VALUES(".$row['CustomerID'].", '".$row['BookID']
-		."', CURRENT_TIME, ".$row['Quantity'].", ".$row['TotalPrice'].", 'N')";
-		$conn->query($sql);
+		VALUES(?, ?, CURRENT_TIME, ?, ?, ?)";
+		$conn->execute_query($sql, [$row['CustomerID'], $row['BookID'], $row['Quantity'], $row['TotalPrice'], 'N']);
 	}
 	$sql = "DELETE FROM cart";
 	$conn->query($sql);
@@ -46,17 +28,27 @@ if(isset($_SESSION['id'])){
 	$sql = "SELECT customer.CustomerName, customer.CustomerIC, customer.CustomerGender, customer.CustomerAddress, customer.CustomerEmail, customer.CustomerPhone, book.BookTitle, book.Price, book.Image, `order`.`DatePurchase`, `order`.`Quantity`, `order`.`TotalPrice`
 		FROM customer, book, `order`
 		WHERE `order`.`CustomerID` = customer.CustomerID AND `order`.`BookID` = book.BookID AND `order`.`Status` = 'N' AND `order`.`CustomerID` = ".$cID."";
-	$result = $conn->query($sql);
+	$stmt = $conn->query($sql);
 	echo '<div class="container">';
 	echo '<blockquote>';
 ?>
+
+<html lang="">
+<body style="font-family:Arial,serif; margin: 0 auto; background-color: #f2f2f2;">
+<header>
+    <blockquote>
+        <img src="image/logo.png">
+        <input class="hi" style="float: right; margin: 2%;" type="button" name="cancel" value="Home" onClick="window.location='index.php';" />
+    </blockquote>
+</header>
 <input class="button" style="float: right;" type="button" name="cancel" value="Continue Shopping" onClick="window.location='index.php';" />
+
 <?php
 	echo '<h2 style="color: #000;">Order Successful</h2>';
 	echo "<table style='width:100%'>";
 	echo "<tr><th>Order Summary</th>";
 	echo "<th></th></tr>";
-	$row = $result->fetch_assoc();
+	$row = $stmt->fetch_assoc();
 	echo "<tr><td>Name: </td><td>".$row['CustomerName']."</td></tr>";
 	echo "<tr><td>No.Number: </td><td>".$row['CustomerIC']."</td></tr>";
 	echo "<tr><td>E-mail: </td><td>".$row['CustomerEmail']."</td></tr>";
@@ -69,9 +61,9 @@ if(isset($_SESSION['id'])){
 	$sql = "SELECT customer.CustomerName, customer.CustomerIC, customer.CustomerGender, customer.CustomerAddress, customer.CustomerEmail, customer.CustomerPhone, book.BookTitle, book.Price, book.Image, `order`.`DatePurchase`, `order`.`Quantity`, `order`.`TotalPrice`
 		FROM customer, book, `order`
 		WHERE `order`.`CustomerID` = customer.CustomerID AND `order`.`BookID` = book.BookID AND `order`.`Status` = 'N' AND `order`.`CustomerID` = ".$cID."";
-	$result = $conn->query($sql);
+	$stmt = $conn->query($sql);
 	$total = 0;
-	while($row = $result->fetch_assoc()){
+	while($row = $stmt->fetch_assoc()){
 		echo "<tr><td style='border-top: 2px solid #ccc;'>";
 		echo '<img src="'.$row["Image"].'"width="20%"></td><td style="border-top: 2px solid #ccc;">';
     	echo $row['BookTitle']."<br>RM".$row['Price']."<br>";
@@ -89,7 +81,6 @@ if(isset($_SESSION['id'])){
 
 $nameErr = $emailErr = $genderErr = $addressErr = $icErr = $contactErr = "";
 $name = $email = $gender = $address = $ic = $contact = "";
-$cID;
 
 if(isset($_POST['submitButton'])){
 	if (empty($_POST["name"])) {
@@ -132,29 +123,15 @@ if(isset($_POST['submitButton'])){
 										if (empty($_POST["address"])){
 											$addressErr = "Please enter your address";
 											$address = "";
-										}else{
+										} else {
 											$address = $_POST['address'];
-
-											$servername = "localhost";
-											$username = "root";
-											$password = "";
-
-											$conn = new mysqli($servername, $username, $password); 
-
-											if ($conn->connect_error) {
-											    die("Connection failed: " . $conn->connect_error);
-											} 
-
-											$sql = "USE bookstore";
-											$conn->query($sql);
-
 											$sql = "INSERT INTO customer(CustomerName, CustomerPhone, CustomerIC, CustomerEmail, CustomerAddress, CustomerGender) 
 											VALUES('".$name."', '".$contact."', '".$ic."', '".$email."', '".$address."', '".$gender."')";
 											$conn->query($sql);
  
 											$sql = "SELECT CustomerID from customer WHERE CustomerName = '".$name."' AND CustomerIC = '".$ic."'";
-											$result = $conn->query($sql);
-											while($row = $result->fetch_assoc()){
+											$stmt = $conn->query($sql);
+											while($row = $stmt->fetch_assoc()){
 												$cID = $row['CustomerID'];
 											}
 
@@ -162,8 +139,8 @@ if(isset($_POST['submitButton'])){
 											$conn->query($sql);
 
 											$sql = "SELECT * FROM cart";
-											$result = $conn->query($sql);
-											while($row = $result->fetch_assoc()){
+											$stmt = $conn->query($sql);
+											while($row = $stmt->fetch_assoc()){
 												$sql = "INSERT INTO `order`(CustomerID, BookID, DatePurchase, Quantity, TotalPrice, Status) 
 												VALUES(".$row['CustomerID'].", '".$row['BookID']
 												."', CURRENT_TIME, ".$row['Quantity'].", ".$row['TotalPrice'].", 'N')";
@@ -182,12 +159,7 @@ if(isset($_POST['submitButton'])){
 		}
 	}
 }
-function test_input($data){
-	$data = trim($data);
-	$data = stripcslashes($data);
-	$data = htmlspecialchars($data);
-	return $data;
-}
+
 ?>
 <style> 
 header {
@@ -305,28 +277,16 @@ if(!isset($_SESSION['id'])){
 }
 
 if(isset($_POST['submitButton'])){
-	$servername = "localhost";
-	$username = "root";
-	$password = "";
-
-	$conn = new mysqli($servername, $username, $password); 
-
-	if ($conn->connect_error) {
-	    die("Connection failed: " . $conn->connect_error);
-	} 
-
-	$sql = "USE bookstore";
-	$conn->query($sql);
 
 	$sql = "SELECT customer.CustomerName, customer.CustomerIC, customer.CustomerGender, customer.CustomerAddress, customer.CustomerEmail, customer.CustomerPhone, book.BookTitle, book.Price, book.Image, `order`.`DatePurchase`, `order`.`Quantity`, `order`.`TotalPrice`
 		FROM customer, book, `order`
 		WHERE `order`.`CustomerID` = customer.CustomerID AND `order`.`BookID` = book.BookID AND `order`.`Status` = 'N' AND `order`.`CustomerID` = ".$cID."";
-	$result = $conn->query($sql);
+	$stmt = $conn->query($sql);
 
 	echo '<table style="width: 40%">';
 	echo "<tr><th>Order Summary</th>";
 	echo "<th></th></tr>";
-	$row = $result->fetch_assoc();
+	$row = $stmt->fetch_assoc();
 	echo "<tr><td>Name: </td><td>".$row['CustomerName']."</td></tr>";
 	echo "<tr><td>No.Number: </td><td>".$row['CustomerIC']."</td></tr>";
 	echo "<tr><td>E-mail: </td><td>".$row['CustomerEmail']."</td></tr>";
@@ -338,9 +298,9 @@ if(isset($_POST['submitButton'])){
 	$sql = "SELECT customer.CustomerName, customer.CustomerIC, customer.CustomerGender, customer.CustomerAddress, customer.CustomerEmail, customer.CustomerPhone, book.BookTitle, book.Price, book.Image, `order`.`DatePurchase`, `order`.`Quantity`, `order`.`TotalPrice`
 		FROM customer, book, `order`
 		WHERE `order`.`CustomerID` = customer.CustomerID AND `order`.`BookID` = book.BookID AND `order`.`Status` = 'N' AND `order`.`CustomerID` = ".$cID."";
-	$result = $conn->query($sql);
+	$stmt = $conn->query($sql);
 	$total = 0;
-	while($row = $result->fetch_assoc()){
+	while($row = $stmt->fetch_assoc()){
 		echo "<tr><td style='border-top: 2px solid #ccc;'>";
 		echo '<img src="'.$row["Image"].'"width="20%"></td><td style="border-top: 2px solid #ccc;">';
     	echo $row['BookTitle']."<br>RM".$row['Price']."<br>";

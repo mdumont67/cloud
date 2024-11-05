@@ -12,18 +12,10 @@ $oEmail;
 $oPhone;
 $oAddress;
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-
-$conn = new mysqli($servername, $username, $password); 
-
+$conn = require_once 'connectDB.php';
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
-} 
-
-$sql = "USE bookstore";
-$conn->query($sql);
+}
 
 $sql = "SELECT users.UserName, users.Password, customer.CustomerName, customer.CustomerIC, customer.CustomerEmail, customer.CustomerPhone, customer.CustomerGender, customer.CustomerAddress
 	FROM users, customer
@@ -101,21 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 												}else{
 													$address = $_POST['address'];
 
-													$servername = "localhost";
-													$username = "root";
-													$password = "";
-
-													$conn = new mysqli($servername, $username, $password); 
-
-													if ($conn->connect_error) {
-													    die("Connection failed: " . $conn->connect_error);
-													} 
-
-													$sql = "USE bookstore";
-													$conn->query($sql);
-
 													$sql = "UPDATE users SET UserName = '".$uname."', Password = '".$upassword."' WHERE UserID = "
-													.$_SESSION['id']."";
+													.$_SESSION['id'];
 													$conn->query($sql);
 
 													$sql = "UPDATE customer SET CustomerName = '".$name."', CustomerPhone = '".$contact."', 

@@ -7,9 +7,8 @@ default:
     - docker info
 
 variables:
-  DOCKER_REGISTRY_HOST: registry.gitlab.com
-  LATEST_IMAGE: $DOCKER_REGISTRY_HOST/giorgiolino/$CI_PROJECT_NAME:latest
-  CURRENT_COMMIT_IMAGE: $DOCKER_REGISTRY_HOST/giorgiolino/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+  LATEST_IMAGE: $CI_REGISTRY_IMAGE:latest
+  CURRENT_COMMIT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
 build:
   only:
@@ -20,6 +19,8 @@ build:
 
   stage: build
   script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - echo "CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE"
     - docker build -f docker/php/Dockerfile --pull --tag $LATEST_IMAGE --tag $CURRENT_COMMIT_IMAGE .
     - docker push $LATEST_IMAGE
     - docker push $CURRENT_COMMIT_IMAGE

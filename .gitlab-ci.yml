@@ -1,0 +1,25 @@
+# cf. https://docs.gitlab.com/ee/ci/docker/using_docker_build.html
+default:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker info
+
+variables:
+  DOCKER_REGISTRY_HOST: registry.gitlab.com
+  LATEST_IMAGE: $DOCKER_REGISTRY_HOST/giorgiolino/$CI_PROJECT_NAME:latest
+  CURRENT_COMMIT_IMAGE: $DOCKER_REGISTRY_HOST/giorgiolino/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+
+build:
+  only:
+    refs:
+      - branches
+    variables:
+      - $CI_COMMIT_REF_NAME == "main"
+
+  stage: build
+  script:
+    - docker build --pull --tag $LATEST_IMAGE --tag $CURRENT_COMMIT_IMAGE .
+    - docker push $LATEST_IMAGE
+    - docker push $CURRENT_COMMIT_IMAGE

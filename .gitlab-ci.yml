@@ -20,6 +20,6 @@ build:
 
   stage: build
   script:
-    - docker build --pull --tag $LATEST_IMAGE --tag $CURRENT_COMMIT_IMAGE .
+    - docker build -f docker/php/Dockerfile --pull --tag $LATEST_IMAGE --tag $CURRENT_COMMIT_IMAGE .
     - docker push $LATEST_IMAGE
     - docker push $CURRENT_COMMIT_IMAGE
